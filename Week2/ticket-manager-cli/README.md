@@ -1,12 +1,10 @@
 # Ticket Manager CLI
 
 Đây là công cụ gõ lệnh trên terminal để quản lý ticket (việc cần làm), lưu trên máy bằng file JSON.
+Làm theo TDD (Test-Driven Development — viết test trước, code sau) trong Tuần 2 chương trình
+MindX Engineer Onboarding.
 
 Phần mềm cần có sẵn: Node.js (nên dùng bản LTS) và npm.
-
-> **Tuần 3 (Knowledge Base):** phần tích hợp KB (`kb search/list/retrieve/add`, mock + server thật)
-> được tách riêng, xem tại **[README-KB.md](./README-KB.md)**. README này chỉ nói về phần Tuần 2
-> (quản lý ticket).
 
 ---
 
@@ -33,14 +31,11 @@ npm run build
 npm link
 ```
 
-Sau bước này, lệnh `tickets` dùng được **cả tuần 2 lẫn tuần 3** (cùng một CLI), không cần cài thêm:
+Sau bước này, gõ được ngay:
 
 ```powershell
 tickets list
-tickets kb list
 ```
-
-`tickets kb ...` mặc định dùng dữ liệu mẫu (mock), không cần bật server. Chi tiết KB xem [README-KB.md](./README-KB.md).
 
 Nếu bỏ qua bước 3 cũng được — dùng cách chạy trong mục Usage bên dưới.
 
@@ -210,27 +205,17 @@ Có test đơn vị (logic) và test tích hợp (file JSON tạm + chạy lện
 ticket-manager-cli/
 ├── src/
 │   ├── commands/         # Nhận lệnh từ người dùng
-│   │   ├── parse-tags.ts #   dùng chung (tickets + kb)
-│   │   ├── tickets/      #   lệnh tickets create/list/show/update
-│   │   └── kb/           #   lệnh kb search/list/retrieve/add (Tuần 3)
-│   ├── services/         # Xử lý nghiệp vụ
-│   │   ├── tickets/
-│   │   └── kb/           #   (Tuần 3)
-│   ├── models/           # Hình dạng dữ liệu
-│   │   ├── tickets/
-│   │   └── kb/           #   (Tuần 3)
-│   ├── storage/          # Đọc/ghi file JSON (ticket)
-│   ├── clients/          # Gọi Knowledge Base — mock/HTTP (Tuần 3)
-│   ├── server/           # Server KB thật (Tuần 3)
+│   │   ├── parse-tags.ts #   tách chuỗi "bug,ui" -> mảng tags
+│   │   └── tickets/      #   lệnh tickets create/list/show/update
+│   ├── services/tickets/ # Xử lý nghiệp vụ (validate, tạo id, lọc)
+│   ├── models/tickets/   # Hình dạng dữ liệu (Ticket, TicketStore)
+│   ├── storage/          # Đọc/ghi file JSON (JsonTicketStore)
 │   └── index.ts          # Điểm vào chương trình
 ├── tests/
 │   ├── helpers/          # dùng chung (chạy CLI thật)
-│   ├── tickets/          # unit/ + integration/
-│   └── kb/               # unit/ + integration/ (Tuần 3)
+│   └── tickets/          # unit/ + integration/
 ├── data/tickets.json     # Dữ liệu khi bạn chạy tay
-├── README.md             # Trang mục lục ngắn, trỏ sang 2 README bên dưới
-├── README-Tickets.md     # Tài liệu Tuần 2 (file này)
-└── README-KB.md          # Tài liệu Tuần 3 — Knowledge Base
+└── README.md
 ```
 
 Code viết theo kiểu function/factory, không dùng class.

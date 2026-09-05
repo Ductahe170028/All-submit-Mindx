@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 import "dotenv/config";
-import path from "path";
 import { Command } from "commander";
-import { registerCreateCommand } from "./commands/tickets/create";
-import { registerListCommand } from "./commands/tickets/list";
-import { registerShowCommand } from "./commands/tickets/show";
-import { registerUpdateCommand } from "./commands/tickets/update";
-import { createTicketService } from "./services/tickets/ticket-service";
-import { createJsonTicketStore } from "./storage/json-ticket-store";
 import { registerKbSearchCommand } from "./commands/kb/kb-search";
 import { registerKbListCommand } from "./commands/kb/kb-list";
 import { registerKbRetrieveCommand } from "./commands/kb/kb-retrieve";
@@ -19,8 +12,8 @@ import type { KBClient } from "./models/kb/kb-client";
 
 /**
  * Chọn KBClient theo biến môi trường KB_CLIENT (mặc định "mock" nếu không set/rỗng — xem
- * decisions.vi.md mục 5). KB_CLIENT=http bắt buộc có KB_API_URL — thiếu thì báo lỗi rõ ngay
- * lúc khởi động (không để CLI chạy mập mờ rồi mới lỗi khi gọi lệnh).
+ * decisions.vi.md mục 5 của tuần 3). KB_CLIENT=http bắt buộc có KB_API_URL — thiếu thì báo
+ * lỗi rõ ngay lúc khởi động (không để CLI chạy mập mờ rồi mới lỗi khi gọi lệnh).
  */
 function resolveKbClient(): KBClient {
   const clientType = (process.env.KB_CLIENT ?? "mock").trim().toLowerCase() || "mock";
@@ -41,25 +34,18 @@ function resolveKbClient(): KBClient {
 }
 
 /**
- * Điểm vào CLI: gắn JSON store + service + đăng ký các lệnh tickets, kb.
+ * Điểm vào CLI: chọn KBClient (mock/http) + gắn service + đăng ký nhóm lệnh `kb`
+ * (search/list/retrieve/add).
  */
 async function main(): Promise<void> {
-  const dataPath =
-    process.env.TICKETS_PATH ?? path.join(process.cwd(), "data", "tickets.json");
-
-  const store = createJsonTicketStore(dataPath);
-  const service = createTicketService(store);
-
   const kbClient = resolveKbClient();
   const kbService = createKbService(kbClient);
 
   const program = new Command();
-  program.name("tickets").description("Ticket Manager CLI").version("1.0.0");
-
-  registerCreateCommand(program, service);
-  registerListCommand(program, service);
-  registerShowCommand(program, service);
-  registerUpdateCommand(program, service);
+  program
+    .name("tickets")
+    .description("Knowledge Base Integration CLI (Week 3)")
+    .version("1.0.0");
 
   const kbCommand = program.command("kb").description("Thao tác với Knowledge Base");
   registerKbSearchCommand(kbCommand, kbService);

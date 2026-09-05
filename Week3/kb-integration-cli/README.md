@@ -1,17 +1,17 @@
-# Tuần 3 — Knowledge Base (KB) Integration
+# Knowledge Base (KB) Integration CLI
 
-> Đây là phần mở rộng của [Ticket Manager CLI](./README-Tickets.md) (Tuần 2). Tài liệu này chỉ nói
-> về phần KB — cách CLI kết nối tới một Knowledge Base (kho tài liệu, viết tắt là "KB") bên ngoài
-> để tìm kiếm, xem, thêm tài liệu. Lệnh ticket tuần 2 xem ở [README-Tickets.md](./README-Tickets.md).
+CLI dòng lệnh để tìm/xem/thêm tài liệu trong một Knowledge Base (kho tri thức, viết tắt "KB") —
+mẫu email, tài liệu team, hướng dẫn nội bộ… Làm trong Tuần 3 chương trình MindX Engineer
+Onboarding, mở rộng ý tưởng CLI của Tuần 2 (Ticket Manager) nhưng đóng gói thành công cụ độc lập.
+
+Phần mềm cần có sẵn: Node.js (nên dùng bản LTS) và npm.
 
 ---
 
-## Chạy thử ngay (nếu bỏ qua tuần 2)
-
-Tuần 2 và tuần 3 **cùng một lệnh** `tickets`. Clone về máy rồi làm lần lượt:
+## Chạy thử ngay
 
 ```powershell
-cd ticket-manager-cli
+cd kb-integration-cli
 npm install
 npm run build
 npm link
@@ -44,9 +44,6 @@ kiểm tra (test) trước, viết code sau**:
    commit test.
 2. Viết code vừa đủ để test đó **chạy qua, không còn báo lỗi** → commit code.
 3. Đọc lại xem code/test có chỗ nào rườm rà, trùng lặp thì dọn cho gọn (refactor).
-
-Lịch sử commit trong repo đi đúng theo thứ tự này: mỗi module luôn có 1 commit test rồi mới đến 1
-commit code.
 
 Điểm quan trọng nhất của phần này: **KB không chỉ chạy được với dữ liệu giả (để phục vụ test) mà
 còn có hẳn một server thật** — chạy bằng lệnh `npm run kb-server`. Chỉ cần đổi 1 dòng trong file
@@ -111,13 +108,13 @@ toàn không cần sửa một dòng code nào.
 "Biến môi trường" ở đây là các giá trị cấu hình đặt trong file `.env` — đổi giá trị trong file này
 là đổi được hành vi của chương trình mà không cần sửa code.
 
-Nếu chưa có file `.env`, tạo bằng cách copy từ file mẫu (đã hướng dẫn ở README Tuần 2):
+Nếu chưa có file `.env`, tạo bằng cách copy từ file mẫu:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Các biến liên quan tới KB trong `.env`:
+Các biến trong `.env`:
 
 | Biến         | Ý nghĩa                                             | Giá trị mặc định                |
 | ------------ | ---------------------------------------------------- | -------------------------------- |
@@ -157,7 +154,7 @@ một "khách hàng" gửi yêu cầu tới server đó qua mạng.
 **Bước 1 — mở một cửa sổ terminal riêng, bật server lên (để terminal này chạy, đừng tắt):**
 
 ```powershell
-cd ticket-manager-cli
+cd kb-integration-cli
 npm run kb-server
 ```
 
@@ -298,25 +295,33 @@ chạy thử CLI bên trong test, giá trị `KB_CLIENT`/`KB_API_URL` đều đ�
 
 ---
 
-## 9. Cấu trúc file liên quan tới KB
+## 9. Cấu trúc thư mục
 
 ```text
-src/
-├── clients/
-│   ├── mock-kb-client.ts      # Cấp dữ liệu giả lập — 10 tài liệu mẫu, sống trong bộ nhớ
-│   └── http-kb-client.ts      # Gọi ra server thật qua HTTP (dùng thư viện axios)
-├── commands/kb/                # Nơi khai báo 4 lệnh kb search/list/retrieve/add cho CLI hiểu
-├── models/kb/                  # Định nghĩa hình dạng dữ liệu: Document, SearchResult, KBClient
-├── server/
-│   ├── create-kb-server.ts     # Code server KB thật (viết bằng http thuần, không dùng framework)
-│   ├── kb-seed-data.ts         # 10 tài liệu mẫu của server — cố tình khác hẳn bên mock
-│   └── index.ts                # Điểm khởi động server (chạy bằng npm run kb-server)
-├── services/kb/
-│   ├── kb-service.ts           # Nơi xử lý nghiệp vụ: giới hạn top-k, kiểm tra dữ liệu, gọi client
-│   └── kb-validation.ts        # Các hàm kiểm tra dữ liệu hợp lệ dùng riêng cho kb add
-└── utils/apply-limit.ts        # Hàm dùng chung để giới hạn số lượng kết quả (kb search + kb list)
-
-tests/kb/
-├── unit/                        # Test logic kb-service với dữ liệu giả lập đơn giản
-└── integration/                 # Test CLI thật (cả với mock lẫn với server HTTP thật)
+kb-integration-cli/
+├── src/
+│   ├── clients/
+│   │   ├── mock-kb-client.ts      # Cấp dữ liệu giả lập — 10 tài liệu mẫu, sống trong bộ nhớ
+│   │   └── http-kb-client.ts      # Gọi ra server thật qua HTTP (dùng thư viện axios)
+│   ├── commands/
+│   │   ├── parse-tags.ts          # Tách chuỗi "bug,ui" -> mảng tags (dùng cho kb add)
+│   │   └── kb/                    # Nơi khai báo 4 lệnh kb search/list/retrieve/add cho CLI hiểu
+│   ├── models/kb/                 # Định nghĩa hình dạng dữ liệu: Document, SearchResult, KBClient
+│   ├── server/
+│   │   ├── create-kb-server.ts    # Code server KB thật (viết bằng http thuần, không dùng framework)
+│   │   ├── kb-seed-data.ts        # 10 tài liệu mẫu của server — cố tình khác hẳn bên mock
+│   │   └── index.ts               # Điểm khởi động server (chạy bằng npm run kb-server)
+│   ├── services/kb/
+│   │   ├── kb-service.ts          # Nơi xử lý nghiệp vụ: giới hạn top-k, kiểm tra dữ liệu, gọi client
+│   │   └── kb-validation.ts       # Các hàm kiểm tra dữ liệu hợp lệ dùng riêng cho kb add
+│   ├── utils/apply-limit.ts       # Hàm dùng chung để giới hạn số lượng kết quả (kb search + kb list)
+│   └── index.ts                   # Điểm vào chương trình (chọn KBClient + đăng ký lệnh kb)
+├── tests/
+│   ├── helpers/                   # dùng chung (chạy CLI thật)
+│   └── kb/
+│       ├── unit/                  # Test logic kb-service với dữ liệu giả lập đơn giản
+│       └── integration/           # Test CLI thật (cả với mock lẫn với server HTTP thật)
+└── README.md
 ```
+
+Code viết theo kiểu function/factory, không dùng class.
