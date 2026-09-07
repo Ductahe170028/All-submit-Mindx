@@ -1,365 +1,225 @@
-# Phân tích ticket và lý do chọn tool xử lý đăng nhập
+# Phân tích ticket và hướng xử lý (Tuần 5)
+
+Nguồn số liệu: file export Helpdesk `sample.xlsx` (plan tuần 5).  
+Em đếm được **131 ticket** của team Technical Support. Một số dòng trong file là tiêu đề nhóm trạng thái, không tính là ticket.
 
 ---
 
 ## 1. Kết luận
 
-Trong tuần 4 có **6 tình huống**, mỗi tình huống là một loại vấn đề khác nhau chứ không phải 6 ticket cùng một lỗi.
+Trong data thật, ticket **không dồn một loại**. Nhiều nhất là việc trên **CRM / thanh toán / hợp đồng**. Tiếp theo là **tài khoản / đăng nhập**, **enroll lớp**, **TMS / chấm công**.
 
-Sau khi xem lại, em chia 6 tình huống thành 4 nhóm. Trong đó nhóm **LMS chạy kém** có nhiều ticket và ảnh hưởng nhiều người nhất. Tuy nhiên, em chọn vấn đề **không đăng nhập được LMS** để làm tool vì đây là công việc support phải thực hiện theo các bước khá giống nhau và phần lớn các bước đều có thể kiểm tra, xử lý tự động.
+Em làm tool cho **đăng nhập / cấp lại mật khẩu** vì bước xử lý giống nhau và máy kiểm tra được (HR + LMS). Nhưng chỉ một tool không đủ. Các hướng khác:
 
-Tool hiện tại đã hoàn thành và được nối với Odoo Helpdesk. Repo: `login-ticket-automation`.
+* Ticket hỏi việc đã có (hoặc giả định sẽ có): bài hướng dẫn → viết guide, hoặc auto-reply + gắn tài liệu
+* CRM / enroll lặp → form / checklist / chuyển đúng team, không để support làm tay mãi
+* TMS / LMS lỗi hàng loạt → giả định điều tra trước, rồi mới chuyển Dev Team.
 
----
-
-## 2. Em đã làm gì?
-
-### Bước 1 — Xem lại 6 tình huống tuần 4
-
-Em mở lại các ticket trên Odoo và đối chiếu với 6 bài tập tuần 4. Với mỗi tình huống, em xem:
-
-* Khách đang gặp vấn đề gì
-* Support phải làm những bước nào để xử lý
-* Thời gian xử lý thủ công khoảng bao lâu
-* Việc đó có lặp lại hay không
-* Có phần nào máy có thể làm thay support không
-
-### Bước 2 — Chia ticket thành các nhóm
-
-Sau khi xem lại, em chia 6 tình huống thành 4 nhóm:
-
-* Tài khoản LMS
-* LMS chạy kém / lỗi hệ thống
-* Yêu cầu tính năng
-* Công việc nội bộ có hạn chót
-
-Việc chia nhóm giúp em nhìn rõ hơn loại vấn đề nào xuất hiện nhiều, loại nào ảnh hưởng nhiều người và loại nào phù hợp để tự động hóa.
-
-### Bước 3 — Chọn vấn đề đăng nhập
-
-Mặc dù nhóm LMS chạy kém có nhiều ticket hơn, em không chọn nhóm này vì nguyên nhân thường nằm ở hệ thống và cần Dev Team kiểm tra.
-
-Với ticket đăng nhập, quy trình xử lý rõ ràng hơn: kiểm tra người dùng còn làm việc không, kiểm tra trạng thái tài khoản LMS, sau đó mở khóa hoặc đặt lại mật khẩu nếu đủ điều kiện.
-
-Đây là chuỗi công việc có thể để máy làm thay phần lớn nên em chọn loại này.
-
-### Bước 4 — Làm tool và nối với Odoo
-
-Khi support kiểm tra ticket và chuyển ticket sang trạng thái **Đang xử lý**, tool bắt đầu chạy.
-
-Tool kiểm tra hồ sơ nhân sự và tài khoản LMS. Nếu đủ điều kiện, tool mở khóa hoặc đặt lại mật khẩu, gửi mail cho người dùng và ghi lại kết quả trên ticket.
 
 ---
 
-## 3. Sáu loại vấn đề trong tuần 4
+## 2. File data có gì
 
-### 01 — Không đăng nhập được / quên mật khẩu
+Mỗi dòng là một phiếu Technical Support. Cột dùng được: tiêu đề (Subject), mã ticket, người gửi, tag, mức ưu tiên, trạng thái trên bảng.
 
-* Nhóm: Tài khoản LMS
-* Ảnh hưởng: 1 giáo viên
-* Thời gian làm tay: khoảng 5–10 phút
-* Các bước xử lý khá giống nhau giữa các lần
-* Máy có thể kiểm tra trạng thái nhân sự và tài khoản
-
-**Đây là loại em chọn để làm tool.**
-
-### 02 — LMS chậm, không tải được trang
-
-* Nhóm: LMS chạy kém
-* Ảnh hưởng: khoảng 15 học viên trong một lớp
-* Thời gian xử lý: khoảng 15–30 phút
-* Support có thể kiểm tra ban đầu và thông báo cho khách
-* Nếu lỗi từ hệ thống thì vẫn cần Dev Team tìm nguyên nhân và xử lý
-
-### 03 — Hệ thống lỗi, không nộp được bài
-
-* Nhóm: LMS chạy kém
-* Ảnh hưởng: hơn 50 học viên ở nhiều lớp
-* Mức độ ảnh hưởng lớn, cần ưu tiên xử lý
-* Support chủ yếu tiếp nhận thông tin, cập nhật tình hình và chuyển Dev Team
-
-### 04 — Yêu cầu tính năng mới
-
-* Nhóm: Product
-* Ảnh hưởng trực tiếp: 1 người gửi yêu cầu
-* Nội dung yêu cầu có thể khác nhau ở mỗi ticket
-* Support không thể tự quyết định hoặc tự triển khai
-* Cần chuyển Product Team đánh giá
-
-### 05 — Video không xem được, nhiều người gặp cùng lúc
-
-* Nhóm: LMS chạy kém
-* Ảnh hưởng: khoảng 12 học viên
-* Support cần xác định đây là lỗi của từng người hay lỗi chung
-* Nếu lỗi từ hệ thống thì cần chuyển Dev Team xử lý
-
-### 06 — Yêu cầu báo cáo gấp, có hạn chót
-
-* Nhóm: Công việc nội bộ / hạn chót
-* Ảnh hưởng trực tiếp: 1 giám đốc
-* Báo cáo cần có trước 09:00
-* Support cần làm rõ yêu cầu và liên hệ người có quyền xử lý hoặc phê duyệt
-* Không phù hợp để máy tự quyết định
+Nhiều cột khác (rating, SLA, icon) gần như trống. **64 / 131 ticket không có tag**, nên em gom nhóm theo **tiêu đề + tag**, không chỉ nhìn cột Tags.
 
 ---
 
-## 4. Phân loại theo nhóm
+## 3. Số liệu support
 
-Em không để 6 ticket thành 6 trường hợp riêng mà gom lại theo loại vấn đề:
+### 3.1. Ticket đang ở bước nào
 
-* **Nhóm A — Tài khoản LMS:** ticket 01
-* **Nhóm B — LMS chạy kém / lỗi hệ thống:** ticket 02, 03, 05
-* **Nhóm C — Yêu cầu tính năng:** ticket 04
-* **Nhóm D — Công việc nội bộ có hạn chót:** ticket 06
+| Trạng thái trên file | Số ticket |
+| --- | ---: |
+| Resolved | 91 |
+| First Response Sent | 17 |
+| Cancelled | 12 |
+| New | 6 |
+| In Progress | 5 |
+| **Tổng** | **131** |
 
-Nhóm B có nhiều ticket nhất với 3/6 ticket.
+```mermaid
+xychart-beta
+    title "Ticket theo trang thai (131 ticket)"
+    x-axis [Resolved, "First Response", Cancelled, New, "In Progress"]
+    y-axis "So ticket" 0 --> 100
+    bar [91, 17, 12, 6, 5]
+```
 
-Nhóm A trong bài tập tuần 4 chỉ có 1 ticket. Tuy nhiên, nếu trong thực tế có nhiều trường hợp quên mật khẩu hoặc tài khoản bị khóa do lâu không đăng nhập thì quy trình xử lý sẽ lặp lại khá nhiều. Vì vậy em chọn nhóm A để thử tự động hóa.
+Phần lớn đã đóng (Resolved). Vẫn còn New / First Response / In Progress — việc chưa xong vẫn vào hàng support.
 
----
+### 3.2. Mức ưu tiên
 
-## 5. Thống kê từ các ticket tuần 4
+| Priority | Số ticket |
+| --- | ---: |
+| High | 42 |
+| Urgent | 40 |
+| Low | 40 |
+| Medium | 9 |
 
-Số liệu được lấy từ danh sách ticket luyện tập tuần 4 trên Odoo (ảnh: `ticket-list.png`).
+Urgent + High = **82 / 131 (~63%)**. Nhiều phiếu được đánh khẩn. File không có cột “bao nhiêu người bị ảnh hưởng”, nên em không bịa số học viên.
 
-Danh sách hiện có **8 ticket**, gồm 6 bài tập và 2 ticket video bị trùng (`00012`, `00013`). Vì đây chỉ là dữ liệu của bài tập tuần 4 nên em không dùng nó để kết luận về số lượng ticket thực tế của cả tháng.
+### 3.3. Ticket thuộc hệ thống / việc gì
 
-Em chỉ dùng số liệu này để so sánh giữa các tình huống trong bài.
+| Nhóm (gom từ tiêu đề + tag) | Số | Tỷ lệ |
+| --- | ---: | ---: |
+| CRM / thanh toán / hợp đồng | 35 | 27% |
+| Khác / chưa gắn rõ | 21 | 16% |
+| Tài khoản / đăng nhập | 18 | 14% |
+| Enroll / lớp học | 17 | 13% |
+| TMS / chấm công | 15 | 11% |
+| LMS / học tập | 13 | 10% |
+| Mail nội bộ | 7 | 5% |
+| Hệ thống khác (Crystal, dropout, book phòng) | 5 | 4% |
 
-### Theo nhóm
+```mermaid
+pie title Nhom ticket trong sample.xlsx (131 ticket)
+  "CRM / thanh toan / hop dong" : 35
+  "Khac / chua gan ro" : 21
+  "Tai khoan / dang nhap" : 18
+  "Enroll / lop hoc" : 17
+  "TMS / cham cong" : 15
+  "LMS / hoc tap" : 13
+  "Mail noi bo" : 7
+  "He thong khac" : 5
+```
 
-* Nhóm A — Tài khoản LMS: **1 ticket (~17%)**
-* Nhóm B — LMS chạy kém: **3 ticket (50%)**
-* Nhóm C — Yêu cầu tính năng: **1 ticket (~17%)**
-* Nhóm D — Công việc nội bộ có hạn chót: **1 ticket (~17%)**
+Tag có sẵn trong file (chỉ khoảng nửa ticket): CRM 23, LMS 14, TMS 9, mail 4, Denise 3. Khớp hướng: CRM nhiều, rồi LMS/TMS.
 
-### Theo mức độ ảnh hưởng
+### 3.4. Ticket gần với tool login
 
-* 1 người, không phải sự cố hệ thống gấp: 2 ticket (01, 04)
-* Nhiều người, khoảng 5–25 người: 2 ticket (02, 05)
-* Rất nhiều người và cần xử lý ngay: 1 ticket (03)
-* Có hạn chót cụ thể: 1 ticket (06)
+Lọc tiêu đề có chữ đăng nhập, mật khẩu, không vào được, tài khoản bị khóa, cấp lại tài khoản: **13 ticket** (~10%). Ví dụ:
 
-### Số người bị ảnh hưởng theo từng tình huống
+* Cấp lại mật khẩu LMS cho giáo viên
+* Không đăng nhập được CRM / TMS / hệ thống nội bộ
+* Tài khoản Ecount bị khóa / không vào được
+* Quên mật khẩu email TMS
 
-* Ticket 01 — đăng nhập: 1 giáo viên
-* Ticket 02 — LMS chậm: 15 học viên
-* Ticket 03 — không nộp được bài: hơn 50 học viên
-* Ticket 04 — yêu cầu tính năng: 1 người
-* Ticket 05 — video lỗi: 12 học viên
-* Ticket 06 — báo cáo: 1 giám đốc, có hạn chót
-
-Nhìn vào số liệu có thể thấy nhóm B ảnh hưởng nhiều người nhất. Riêng ticket 03 có mức độ ảnh hưởng lớn nhất.
-
-Tuy nhiên, mức độ ảnh hưởng lớn không đồng nghĩa với việc phù hợp để support tự làm tool xử lý. Các lỗi thuộc nhóm B chủ yếu cần Dev Team tìm nguyên nhân trong hệ thống.
-
----
-
-## 6. Thời gian support xử lý thủ công
-
-Thời gian dưới đây là ước lượng dựa trên lúc em thực hiện các tình huống tuần 4:
-
-* **01 — Đăng nhập:** khoảng 8 phút/ticket
-* **02 — LMS chậm:** khoảng 15–30 phút để kiểm tra ban đầu, trao đổi với khách và chuyển Dev Team
-* **03 — Sự cố lớn:** cần theo dõi và cập nhật tình hình cho đến khi Dev Team xử lý xong
-* **04 — Yêu cầu tính năng:** support ghi nhận yêu cầu và chuyển Product Team
-* **05 — Video lỗi:** kiểm tra tình trạng, tìm cách xử lý tạm thời và chuyển Dev Team nếu là lỗi hệ thống
-* **06 — Báo cáo gấp:** làm rõ yêu cầu và liên hệ người có quyền xử lý, thời gian còn phụ thuộc vào người được chuyển tiếp
-
-Từ đây em rút ra:
-
-* Nhóm xuất hiện nhiều nhất là **LMS chạy kém**
-* Ticket ảnh hưởng nhiều người nhất là **ticket 03**
-* Công việc support có thể tự động hóa rõ nhất là **ticket 01**
-
-Nếu chỉ nhìn vào số lượng ticket thì nhóm B sẽ là nhóm nên ưu tiên. Nhưng mục tiêu của tool là giảm phần công việc lặp lại mà support đang phải làm thủ công. Vì vậy em chọn ticket đăng nhập.
-
----
-
-## 7. Vì sao em chọn vấn đề đăng nhập?
-
-Khi người dùng báo không đăng nhập được hoặc quên mật khẩu, support thường phải thực hiện một chuỗi bước tương đối giống nhau:
-
-1. Kiểm tra người dùng còn làm việc hay không
-2. Kiểm tra có tài khoản LMS hay không
-3. Kiểm tra trạng thái tài khoản
-4. Nếu tài khoản bị khóa thì mở lại
-5. Nếu cần thì đặt lại mật khẩu
-6. Gửi thông tin cho người dùng
-7. Ghi lại kết quả trên ticket
-
-Các bước trên có điều kiện khá rõ ràng và dữ liệu có thể kiểm tra được, vì vậy máy có thể làm thay support phần lớn quy trình.
-
-Giả sử LMS có quy định khóa tài khoản sau 30 ngày không đăng nhập thì loại ticket này còn có khả năng lặp lại. Ngoài ra vẫn luôn có trường hợp người dùng quên mật khẩu.
-
-Trong khi đó, 5 tình huống còn lại khó tự động xử lý hoàn toàn:
-
-* LMS chậm, sập hoặc video lỗi cần Dev Team tìm nguyên nhân
-* Yêu cầu tính năng cần Product Team quyết định
-* Báo cáo gấp phụ thuộc vào nội dung yêu cầu và quyền của từng người
-
-Vì vậy em chọn bài toán nhỏ hơn nhưng có quy trình rõ và có thể tự động hóa được.
+Không phải 13 ticket đều giống scenario tuần 4 (LMS giáo viên). Nhưng cùng kiểu: **hỏi tài khoản, support kiểm rồi mở / cấp lại**.
 
 ---
 
-## 8. Làm tool hay chờ sửa LMS?
+## 4. Đọc số rồi làm gì
 
-Trong trường hợp giả sử LMS có rule tự khóa tài khoản sau 30 ngày không đăng nhập thì đây là quy định của hệ thống chứ không hẳn là bug.
+* **Nhiều nhất:** CRM (QR, lead, payment, hợp đồng). Support hay phải nhờ kế toán / tech sửa trên hệ thống. Khó một tool “tự sửa CRM”. Có thể giảm ticket bằng form đủ thông tin + bài hướng dẫn thao tác thường gặp.
+* **Làm tool được ngay:** tài khoản / đăng nhập (~14%, trong đó ~10% rất sát login/mật khẩu). Đã làm.
+* **Lặp rõ:** enroll vào lớp (17). Hay nhờ “add giúp học viên”. Checklist + quyền đúng người làm, hơn là support làm hộ từng phiếu.
+* **TMS / LMS lỗi hàng loạt** (không hiện công, không thao tác được): không phải quên mật khẩu. Cần giả định điều tra, xem có sự cố chung không.
 
-Nếu muốn thay đổi rule này thì cần Product Team xem xét và có thể phải chờ Dev Team thay đổi LMS.
-
-Trong khi đó, support vẫn phải xử lý các ticket phát sinh hằng ngày.
-
-Vì vậy em chọn làm tool trước để giải quyết phần việc của support. Nếu người dùng vẫn còn làm việc và tài khoản đủ điều kiện mở lại thì tool có thể xử lý ngay.
-
-Về lâu dài, nếu số lượng ticket loại này nhiều thì vẫn nên xem xét nguyên nhân gốc, ví dụ gửi mail nhắc trước khi tài khoản bị khóa hoặc thay đổi rule nếu Product Team thấy hợp lý.
-
-Tool là cách giảm công việc hiện tại, không phải giải pháp thay thế việc sửa nguyên nhân gốc.
+Tuần 4 em từng thấy “LMS chậm” ảnh hưởng nhiều người trong bài tập. **Trong sample.xlsx ít tiêu đề kiểu trang chậm.** Data thật nghiêng việc nội bộ / BU (CRM, enroll, TMS). Report này theo file data.
 
 ---
 
-## 9. Phương án cho từng nhóm
+## 5. Sáu tình huống tuần 4 — chỉ để nhớ bài luyện
 
-### Nhóm A — Tài khoản LMS
+Em vẫn để ngắn, vì tool bám scenario login tuần 4. Đây **không phải** bảng số liệu chính.
 
-**Hiện tại:** sử dụng tool đã làm.
-
-Khi ticket chuyển sang **Đang xử lý**, tool kiểm tra dữ liệu và tự xử lý nếu đủ điều kiện.
-
-Nếu người dùng đã nghỉ việc hoặc không tìm thấy thông tin trong hệ thống nhân sự/LMS thì tool không tự xử lý mà đánh dấu để support kiểm tra thủ công.
-
-**Về sau:** nếu thực tế có nhiều tài khoản bị khóa do rule 30 ngày thì có thể đề xuất gửi mail nhắc trước khi khóa hoặc xem xét lại rule.
-
-### Nhóm B — LMS chạy kém
-
-Với LMS chậm, không nộp được bài hoặc video lỗi, support nên kiểm tra ban đầu để xác định phạm vi ảnh hưởng.
-
-Nếu nhiều người gặp cùng một lỗi thì nên gom thông tin vào một ticket chính, cập nhật tình hình cho người dùng và chuyển Dev Team.
-
-Em không chọn viết tool tự sửa nhóm này vì support không có đủ thông tin và quyền để tự xử lý lỗi bên trong LMS.
-
-### Nhóm C — Yêu cầu tính năng
-
-Support ghi nhận đầy đủ yêu cầu và chuyển Product Team đánh giá.
-
-Support không nên hứa trước thời gian có tính năng khi Product Team chưa xác nhận.
-
-Có thể dùng form chung để người gửi điền rõ nhu cầu, mục đích và mức độ cần thiết, giúp Product Team có đủ thông tin ngay từ đầu.
-
-### Nhóm D — Công việc có hạn chót
-
-Support cần hỏi rõ nội dung báo cáo, phạm vi dữ liệu và thời gian cần hoàn thành, sau đó chuyển đến người có quyền xử lý.
-
-Có thể tạo mẫu yêu cầu báo cáo gấp gồm:
-
-* Cần báo cáo gì
-* Kỳ dữ liệu nào
-* Cơ sở/bộ phận nào
-* Hạn cần có báo cáo
-
-Việc này giúp giảm thời gian hỏi lại nhưng không nên để máy tự phê duyệt.
+| Tình huống | Nhóm | Ghi chú |
+| --- | --- | --- |
+| 01 Đăng nhập / quên mật khẩu | Tài khoản | Lặp bước, máy kiểm tra được. Đã làm tool. |
+| 02 LMS chậm | Hệ thống | Ảnh hưởng một lớp. Support không tự sửa LMS. |
+| 03 Không nộp bài / sập | Hệ thống | Nhiều người, chuyển Dev Team. |
+| 04 Xin tính năng | Product | Không tự làm, không hứa ngày ra feature. |
+| 05 Video lỗi nhiều người | Hệ thống | Gom ticket, xem lỗi chung hay từng máy. |
+| 06 Báo cáo có hạn chót | Nội bộ | Cần người có quyền, máy không tự duyệt. |
 
 ---
 
-## 10. Tool hoạt động như thế nào?
+## 6. Nhiều hướng, không chỉ một tool
 
-Quy trình hiện tại:
+### Hướng A — Tài khoản / đăng nhập (đã làm)
 
-**Support tạo ticket → kiểm tra thông tin → chuyển sang Đang xử lý → tool bắt đầu xử lý.**
+Support chuyển ticket sang **Đang xử lý** → tool kiểm HR + LMS.
 
-Sau khi nhận ticket, tool kiểm tra hồ sơ nhân sự và tài khoản LMS.
+* Còn làm việc + có tài khoản: mở khóa / đặt mật khẩu, gửi mail, ghi chú.
+* Nghỉ việc, không thấy hồ sơ, không thấy tài khoản: ghi chú, support xem tay.
+* Không chạy khi đang soạn ticket. Ticket máy đã làm thì không làm lại.
 
-### Trường hợp có thể xử lý tự động
+Ước lượng từ lúc luyện tuần 4: làm tay khoảng **8 phút**, có tool còn khoảng **1 phút** nếu đủ điều kiện. Với ~13 ticket giống login trong file, nếu đều làm tay thì khoảng **1.5–2 giờ**. Đây là ước lượng, file không ghi phút thật.
 
-Nếu người dùng vẫn còn làm việc và tìm thấy tài khoản LMS:
+Về sau: nếu nhiều tài khoản khóa vì rule 30 ngày (giả định), đề xuất mail nhắc trước khi khóa.
 
-* Kiểm tra trạng thái tài khoản
-* Mở khóa hoặc đặt lại mật khẩu nếu cần
-* Gửi mail cho người dùng
-* Ghi chú kết quả vào ticket
-* Đánh dấu ticket đã được tool xử lý
+### Hướng B — Guide (giả định, hai nhánh)
 
-### Trường hợp cần support xử lý
+Em **không biết** công ty đã có bài hướng dẫn trên Helpdesk / KB hay chưa. Nên tách giả định:
 
-Nếu:
+**Giả định 1 — chưa có guide**  
+Bổ sung bài ngắn cho việc hay gặp trong file:
 
-* Người dùng đã nghỉ việc
-* Không tìm thấy hồ sơ nhân sự
-* Không tìm thấy tài khoản LMS
-* Dữ liệu không đủ để tool quyết định
+* Quên mật khẩu / không đăng nhập LMS, CRM, TMS
+* Enroll học viên cần gửi đủ mã lớp, SĐT, tên
+* BU nhờ hủy / confirm payment trên CRM
 
-thì tool không tự thay đổi tài khoản mà ghi chú để support kiểm tra thủ công.
+**Giả định 2 — đã có guide**  
+Hỏi tiếp: **sao vẫn còn ticket?** Có thể khách không tìm thấy bài, hoặc vẫn thích gửi phiếu cho nhanh.
 
-Em cũng thêm một số điều kiện để tránh tool chạy sai:
+Hướng lúc đó: **tool auto-reply + gắn tài liệu**. Ticket khớp từ khóa (quên mật khẩu, enroll, QR…) thì gửi sẵn link/file hướng dẫn, rồi mới để support vào nếu khách vẫn kẹt. Không thay tool login (login vẫn phải kiểm HR/LMS). Cái này giảm ticket “hỏi lại bước đã viết sẵn”.
 
-* Ticket đang được soạn thì tool chưa chạy, chỉ chạy khi chuyển sang **Đang xử lý**
-* Ticket đã được tool xử lý thì không xử lý lại
-* Nếu server bị tắt rồi bật lại, tool sẽ kiểm tra các ticket còn chưa xử lý để tránh bỏ sót
+### Hướng C — CRM / enroll (nhiều nhất trong file)
 
----
+Không viết tool tự sửa CRM.
 
-## 11. Tool mang lại gì?
+* Form: thiếu field nào thì chưa tạo ticket
+* Nếu giả định đã có guide mà vẫn vào → auto-reply như hướng B
+* Ticket “nhờ kế toán hủy confirm / sửa giá” → chuyển đúng đội, không nằm mãi ở Technical Support nếu không phải lỗi hệ thống
 
-Trước khi có tool, một ticket đăng nhập mất khoảng **8 phút** để support kiểm tra và xử lý.
+### Hướng D — TMS / LMS lỗi — giả định điều tra
 
-Sau khi có tool, với trường hợp đủ điều kiện tự động, support chủ yếu chỉ cần xem kết quả trên Odoo. Em ước lượng còn khoảng **1 phút/ticket**.
+Với ticket “TMS không hiện thông tin”, “không thao tác được từ ngày 31”, “không xem chấm công”:
 
-Như vậy có thể giảm khoảng **7 phút cho mỗi ticket đăng nhập**.
+Em **không có log**. Giả định support kiểm trước khi chuyển Dev:
 
-Tuần 4 mới chỉ có một ticket thuộc loại này nên chưa đủ dữ liệu để kết luận tool giúp tiết kiệm bao nhiêu thời gian trong một tháng.
+1. Một người hay cả cơ sở / cả tỉnh? (file có ticket tỉnh Nam 2, nhiều BU)
+2. Cùng một buổi hay kéo dài nhiều ngày?
+3. Chỉ TMS hay kèm CRM/LMS?
+4. User vừa đổi máy / trình duyệt / hết hạn mật khẩu? (lẫn với hướng A)
+5. Có đợt cập nhật hệ thống hôm đó không?
 
-Nếu sau này có dữ liệu ticket thực tế, em có thể đo:
+Nếu nhiều người cùng lúc → một ticket chính + cập nhật chung, không để 10 phiếu riêng.  
+Nếu chỉ một user → thử đăng xuất, trình duyệt khác, rồi mới escalate.
 
-* Có bao nhiêu ticket đăng nhập mỗi tuần/tháng
-* Bao nhiêu ticket tool xử lý được hoàn toàn
-* Bao nhiêu ticket vẫn phải xử lý tay
-* Thời gian trung bình trước và sau khi dùng tool
+**LMS chậm (bài tuần 4):** giả định thêm tải trang chậm do nhiều lớp vào cùng giờ, video nặng, mạng cơ sở, hoặc server. Support hỏi: bao nhiêu người, cơ sở nào, giờ nào, thử mạng khác chưa. Không tự kết luận “do server” nếu chưa có dấu hiệu chung.
 
-Ngoài việc giảm thời gian, tool còn giúp:
+### Hướng E — Xin tính năng / việc có hạn chót (tuần 4)
 
-* Người dùng nhận phản hồi nhanh hơn
-* Giảm khả năng support bỏ sót bước kiểm tra
-* Có lịch sử xử lý rõ trên ticket
-* Support có thêm thời gian để tập trung vào các sự cố ảnh hưởng nhiều người
+Vẫn: ghi nhận, không hứa ngày có tính năng. Việc có giờ chết thì hỏi rõ scope, xin người có quyền. Máy không tự duyệt.
 
 ---
 
-## 12. Kế hoạch giảm lượng ticket
+## 7. Tool login hoạt động thế nào
 
-Tool giúp xử lý ticket nhanh hơn nhưng không có nghĩa là số ticket tự giảm. Vì vậy em chia thành hai hướng.
+**Tạo ticket → support kiểm → Đang xử lý → tool chạy.**
 
-**Hướng 1 — Giảm thời gian xử lý**
+Đủ điều kiện: kiểm trạng thái tài khoản → mở khóa hoặc reset mật khẩu → mail khách → ghi chú → đánh dấu đã xử lý.
 
-Tool đăng nhập đã hoàn thành và giúp support không phải lặp lại toàn bộ các bước thủ công với những ticket đủ điều kiện.
+Không đủ: không đổi tài khoản, chỉ ghi chú.
 
-**Hướng 2 — Giảm số ticket phát sinh**
-
-Khi có thêm dữ liệu thực tế, em sẽ theo dõi các ticket liên quan đến login/LMS để xem nguyên nhân nào xuất hiện nhiều.
-
-Có thể bổ sung hướng dẫn ngắn cho người dùng về:
-
-* Quên mật khẩu / không đăng nhập được
-* LMS chậm
-* Sự cố hệ thống
-* Yêu cầu tính năng
-* Yêu cầu báo cáo gấp
-
-Nếu thực tế có nhiều tài khoản bị khóa vì rule 30 ngày, có thể đề xuất Product Team gửi mail nhắc trước khi khóa hoặc xem lại rule.
-
-Như vậy, tool giải quyết phần **xử lý nhanh hơn**, còn hướng dẫn và thay đổi từ phía sản phẩm mới là phần giúp **giảm số ticket phát sinh**.
+Chặn thêm: không chạy lúc soạn; không chạy lại ticket đã xử lý; bật lại server thì quét ticket còn sót.
 
 ---
 
-## 13. Tóm lại
+## 8. Tool mang lại gì, và chưa mang lại gì
 
-Qua 6 tình huống tuần 4, em chia được thành 4 nhóm vấn đề.
+* Nhanh hơn với ticket đăng nhập đủ điều kiện.
+* Ít quên bước kiểm HR trước khi mở khóa.
+* **Không** làm giảm ticket CRM/enroll (nhóm lớn nhất trong file).
+* **Không** sửa LMS/TMS chậm hay sập.
 
-Nhóm **LMS chạy kém** có nhiều ticket và ảnh hưởng nhiều người nhất. Tuy nhiên, các lỗi này chủ yếu cần Dev Team tìm nguyên nhân và sửa hệ thống nên không phù hợp với một tool support có thể tự làm trong thời gian ngắn.
+Muốn đo sau này (khi có thêm export):
 
-Em chọn **tài khoản LMS** vì quy trình xử lý rõ, lặp lại và phần lớn các bước có thể kiểm tra bằng dữ liệu.
+* Bao nhiêu ticket/tuần thuộc đăng nhập
+* Bao nhiêu cái tool xử lý hết, bao nhiêu phải xem tay
+* Ticket CRM/enroll còn bao nhiêu sau khi có guide hoặc auto-reply
 
-Tool hiện đã được nối với Odoo Helpdesk. Khi ticket đăng nhập chuyển sang **Đang xử lý**, tool có thể kiểm tra trạng thái người dùng và tài khoản LMS, xử lý những trường hợp đủ điều kiện và chuyển những trường hợp không chắc chắn lại cho support.
+---
 
-Mục tiêu của tool không phải thay thế Dev Team hay thay đổi rule của LMS, mà là giảm phần công việc thủ công lặp lại của support.
+## 9. Tóm lại
 
-Nếu sau này có thêm dữ liệu ticket thực tế, em sẽ dựa vào số lượng ticket, tỷ lệ tool xử lý thành công và thời gian xử lý trước/sau để đánh giá tool có thực sự mang lại hiệu quả hay không.
+* Số liệu support lấy từ **`sample.xlsx` (131 ticket)**, không lấy 6 ticket tuần 4.
+* Nhiều nhất: **CRM / thanh toán**. Tool login không giải quyết nhóm này.
+* Em làm tool **tài khoản / đăng nhập** vì lặp bước và có trong data (~10–14%).
+* Guide viết theo **giả định**: chưa có thì bổ sung; có rồi mà vẫn còn ticket thì xét auto-reply + gắn tài liệu.
+* TMS/LMS lỗi: **giả định điều tra** phạm vi (một người hay cả hệ thống), không chỉ viết “chuyển Dev”.
+
+Chart nằm trong report này. Đối chiếu từng dòng thì mở `sample.xlsx` ở plan tuần 5.
